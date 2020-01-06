@@ -1,9 +1,9 @@
 module SalesforceBulkApi
-
   class Job
     attr_reader :job_id
 
     class SalesforceException < StandardError; end
+    class JobTimeout < StandardError; end
 
     def initialize(args)
       @job_id         = args[:job_id]
@@ -224,8 +224,39 @@ module SalesforceBulkApi
       results
     end
 
-  end
+    def retrieve_batch
+      path = "job/#{@job_id}/batch"
+      headers = Hash.new
+      response = @connection.get_request(nil, path, headers)
+      response_parsed = XmlSimple.xml_in(response)
+    rescue StandardError => e
+      puts "Error parsing XML response for #{@job_id}"
+      puts e
+      puts e.backtrace
+    end
 
-  class JobTimeout < StandardError
+    def retrieve_batch_result(batch_id)
+      path = "job/#{@job_id}/batch/#{batch_id}/result"
+      headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
+      response = @connection.get_request(nil, path, headers)
+      response_parsed = XmlSimple.xml_in(response)
+    rescue StandardError => e
+      puts "Error parsing XML response for #{@job_id}, batch #{batch_id}"
+      puts e
+      puts e.backtrace
+    end
+
+    def retrieve_batch_result(batch_id)
+      result_id = retrieve_batch_result(batch_id)["result"][0]
+      path = "job/#{@job_id}/batch/#{batch_id}/result/#{result_id}"
+      headers = Hash["Content-Type" => "application/xml; charset=UTF-8"]
+      response = @connection.get_request(nil, path, headers)
+      response_parsed = XmlSimple.xml_in(response)
+      results = response_parsed['records']
+    rescue StandardError => e
+      puts "Error parsing XML response for #{@job_id}, batch #{batch_id}"
+      puts e
+      puts e.backtrace
+    end
   end
 end

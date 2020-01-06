@@ -103,6 +103,7 @@ res = salesforce.query("Account", "select id, name, createddate from Account lim
 # Check status of a job via #job_from_id
 job = salesforce.job_from_id('a00A0001009zA2m') # Returns a SalesforceBulkApi::Job instance
 puts "status is: #{job.check_job_status.inspect}"
+puts "all batches in a job is: #{job.retrieve_batch.inspect}"
 ```
 
 ### Listening to events:
